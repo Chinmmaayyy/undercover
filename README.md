@@ -63,7 +63,7 @@ Rounds continue until someone wins.
 
 ## Default Players
 
-Bhakthi, Chinmay, Dhruv, Harshit, Kashvi, Naman, Om, Pari, Pratik, Sanika, Sanju, Soham, Suraj, Swaraj
+
 
 Displayed alphabetically. Toggle anyone out before starting.
 
