@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Undercover</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080810;
+  --surface: #0f0f1a;
+  --card: #13131f;
+  --border: #1e1e30;
+  --accent: #f0c040;
+  --red: #ff3d5a;
+  --green: #39e07a;
+  --white-col: #c8d6e8;
+  --text: #eeeef8;
+  --muted: #44445a;
+  --muted2: #666688;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+  background:var(--bg); color:var(--text);
+  font-family:'Space Grotesk',sans-serif;
+  min-height:100vh; overflow-x:hidden;
+}
+body::after {
+  content:''; position:fixed; inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,.01) 2px,rgba(255,255,255,.01) 4px);
+  pointer-events:none; z-index:0;
+}
+.wrap { max-width:480px; margin:0 auto; padding:0 16px 100px; position:relative; z-index:1; }
+
+/* HDR */
+.hdr { text-align:center; padding:36px 0 28px; }
+.hdr h1 {
+  font-family:'Bebas Neue',sans-serif; font-size:72px; letter-spacing:10px;
+  color:var(--accent); text-shadow:0 0 60px rgba(240,192,64,.35),0 2px 0 #000; line-height:1;
+}
+.hdr p { font-size:10px; letter-spacing:5px; color:var(--muted2); margin-top:6px; text-transform:uppercase; }
+
+/* SCREENS */
+.screen { display:none; }
+.screen.active { display:block; animation:fadeUp .3s ease; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+
+/* CARD */
+.card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px; margin-bottom:14px; }
+.clabel { font-size:9px; letter-spacing:4px; color:var(--muted2); text-transform:uppercase; margin-bottom:14px; }
+
+/* INPUT */
+input[type=text] {
+  width:100%; background:var(--surface); border:1px solid var(--border);
+  border-radius:8px; padding:11px 14px; color:var(--text);
+  font-family:'Space Grotesk',sans-serif; font-size:14px; outline:none; transition:border-color .2s;
+}
+input[type=text]:focus { border-color:var(--accent); }
+input[type=text]::placeholder { color:var(--muted); }
+.row { display:flex; gap:8px; margin-bottom:8px; }
+
+/* BUTTONS */
+.btn {
+  background:none; border:1px solid var(--border); border-radius:8px;
+  padding:10px 16px; color:var(--text); font-family:'Space Grotesk',sans-serif;
+  font-size:13px; cursor:pointer; transition:all .18s; letter-spacing:.5px;
+}
+.btn:hover { border-color:var(--accent); color:var(--accent); }
+.btn:active { transform:scale(.97); }
+.btn:disabled { opacity:.35; pointer-events:none; }
+.btn-xl {
+  width:100%; padding:15px; background:var(--accent); border-color:var(--accent);
+  color:#000; font-weight:700; font-size:14px; letter-spacing:2px;
+  text-transform:uppercase; border-radius:10px; margin-top:6px;
+}
+.btn-xl:hover { background:#f5d060; border-color:#f5d060; color:#000; }
+.btn-ghost { background:var(--surface); border-color:var(--border); color:var(--text); }
+.btn-ghost:hover { border-color:var(--accent); color:var(--accent); }
+.btn-red { background:var(--red); border-color:var(--red); color:#fff; }
+.btn-red:hover { background:#ff5570; }
+.btn-ico { width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px; }
+
+/* PLAYER CHIP */
+.pchip {
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:9px 12px;margin-bottom:6px;font-size:13px;
+}
+
+/* COUNTER */
+.ctr-row { display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border); }
+.ctr-row:last-child { border-bottom:none; }
+.ctr-label { font-size:13px; }
+.ctr-sub { font-size:10px;color:var(--muted2);margin-top:2px; }
+.ctr-ctrl { display:flex;align-items:center;gap:14px; }
+.ctr-ctrl button {
+  background:none;border:1px solid var(--border);border-radius:6px;
+  width:30px;height:30px;color:var(--text);cursor:pointer;font-size:18px;
+  transition:all .18s;display:flex;align-items:center;justify-content:center;
+}
+.ctr-ctrl button:hover { border-color:var(--accent);color:var(--accent); }
+.ctr-val { font-size:20px;min-width:26px;text-align:center;color:var(--accent);font-family:'Bebas Neue',sans-serif; }
+
+/* THEME CHIPS */
+.tchips { display:flex;flex-wrap:wrap;gap:7px;margin-top:10px; }
+.tchip {
+  background:var(--surface);border:1px solid var(--border);border-radius:20px;
+  padding:5px 13px;font-size:11px;cursor:pointer;transition:all .18s;
+  font-family:'Space Grotesk',sans-serif;color:var(--text);
+}
+.tchip:hover,.tchip.on { border-color:var(--accent);color:var(--accent);background:rgba(240,192,64,.06); }
+
+/* SPINNER */
+.spin-wrap { text-align:center;padding:56px 0; }
+.spin { width:52px;height:52px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 18px; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.spin-txt { font-size:10px;letter-spacing:4px;color:var(--muted2);text-transform:uppercase; }
+
+/* REVEAL */
+.rev-center { text-align:center;padding:36px 20px; }
+.rev-avi {
+  width:80px;height:80px;border-radius:50%;background:var(--surface);border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px;
+}
+.rev-name { font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:4px;color:var(--accent);margin-bottom:6px; }
+.rev-hint { font-size:11px;letter-spacing:2px;color:var(--muted2);text-transform:uppercase; }
+.word-big { font-family:'Bebas Neue',sans-serif;font-size:58px;letter-spacing:6px;line-height:1.1; }
+.dots { display:flex;gap:7px;justify-content:center;margin:16px 0 4px; }
+.dot { width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .3s; }
+.dot.done { background:var(--accent); }
+.dot.now { background:var(--accent);box-shadow:0 0 8px var(--accent); }
+
+/* BADGES */
+.badge {
+  display:inline-block;font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  padding:5px 14px;border-radius:20px;margin:10px 0;
+}
+.badge-civ { background:rgba(57,224,122,.1);color:var(--green);border:1px solid rgba(57,224,122,.25); }
+.badge-unc { background:rgba(255,61,90,.1);color:var(--red);border:1px solid rgba(255,61,90,.25); }
+.badge-mw  { background:rgba(200,214,232,.1);color:var(--white-col);border:1px solid rgba(200,214,232,.25); }
+
+/* DISCUSSION */
+.rnd-badge {
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;padding:6px 14px;font-size:11px;color:var(--muted2);
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;
+}
+.speak-row {
+  display:flex;align-items:center;gap:12px;
+  padding:11px 13px;border-radius:8px;margin-bottom:6px;
+  background:var(--surface);border:1px solid var(--border);transition:all .2s;font-size:13px;
+}
+.speak-row.speaking { border-color:var(--accent);background:rgba(240,192,64,.05); }
+.speak-row.done-s { opacity:.4; }
+.speak-num { font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--muted);width:26px;text-align:center; }
+.speak-row.speaking .speak-num { color:var(--accent); }
+
+/* VOTE */
+.vote-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
+.vote-card {
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:14px;text-align:center;cursor:pointer;transition:all .2s;position:relative;
+}
+.vote-card:hover:not(.out) { border-color:var(--red);transform:translateY(-2px); }
+.vote-card.out { opacity:.3;pointer-events:none; }
+.v-emo { font-size:26px;margin-bottom:6px; }
+.v-name { font-size:13px;font-weight:600; }
+.vbadge {
+  position:absolute;top:-8px;right:-8px;background:var(--red);color:#fff;
+  font-size:11px;font-weight:700;border-radius:50%;width:22px;height:22px;
+  display:none;align-items:center;justify-content:center;
+}
+.vbar { height:3px;background:var(--red);border-radius:2px;transition:width .3s;margin-top:4px; }
+
+/* DRAMA */
+.drama { text-align:center;padding:36px 20px; }
+.drama-big { font-family:'Bebas Neue',sans-serif;letter-spacing:5px;line-height:1; }
+
+/* RESULTS */
+.res-row {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 12px;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;margin-bottom:6px;font-size:13px;
+}
+.res-word { font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px; }
+
+/* ERR */
+.err { font-size:11px;color:var(--red);letter-spacing:1px;margin-top:8px;display:none;text-align:center; }
+
+/* OVERLAY */
+.overlay {
+  position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);
+  z-index:200;display:none;align-items:flex-end;justify-content:center;padding:16px;
+}
+.overlay.show { display:flex; }
+.modal {
+  background:var(--card);border:1px solid var(--border);border-radius:16px 16px 12px 12px;
+  padding:24px;width:100%;max-width:480px;animation:slideUp .3s ease;
+}
+@keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:none;opacity:1} }
+.modal h3 { font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:4px;color:var(--accent);margin-bottom:10px; }
+
+/* NOTIF */
+.notif {
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--card);border:1px solid var(--accent);border-radius:8px;
+  padding:10px 20px;font-size:12px;letter-spacing:1px;z-index:300;
+  animation:notifIn .3s ease;white-space:nowrap;
+}
+@keyframes notifIn { from{opacity:0;transform:translateX(-50%) translateY(8px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+.pulse { animation:pulse 1.2s ease infinite; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-5px)} 40%,80%{transform:translateX(5px)} }
+.shake { animation:shake .4s ease; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hdr"><h1>UNDERCOVER</h1><p>Who's the spy?</p></div>
+
+<!-- ── SETUP ──────────────────────────────────────────────── -->
+<div class="screen active" id="s-setup">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="clabel" style="margin-bottom:0">Players — tap to toggle in/out</div>
+      <span id="playing-count" style="font-size:11px;color:var(--accent);letter-spacing:1px"></span>
+    </div>
+    <div id="plist"></div>
+    <div class="row" style="margin-top:10px">
+      <input type="text" id="pinput" placeholder="Add new player…" maxlength="18">
+      <button class="btn btn-ico" onclick="addPlayer()">＋</button>
+    </div>
+    <div class="err" id="err-p"></div>
+  </div>
+  <div class="card">
+    <div class="clabel">Special Roles</div>
+    <div class="ctr-row">
+      <div><div class="ctr-label">🕵️ Undercover</div><div class="ctr-sub">Gets a different but similar word</div></div>
+      <div class="ctr-ctrl">
+        <button onclick="chg('u',-1)">−</button>
+        <span class="ctr-val" id="cv-u">1</span>
+        <button onclick="chg('u',1)">+</button>
+      </div>
+    </div>
+    <div class="ctr-row">
+      <div><div class="ctr-label">⬜ Mr. White</div><div class="ctr-sub">No word — bluffs &amp; guesses</div></div>
+      <div class="ctr-ctrl">
+        <button onclick="chg('w',-1)">−</button>
+        <span class="ctr-val" id="cv-w">0</span>
+        <button onclick="chg('w',1)">+</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="clabel">Theme <span style="color:var(--muted);font-size:10px">(optional)</span></div>
+    <input type="text" id="tinput" placeholder="e.g. food, movies, sports…">
+    <div class="tchips">
+      <span class="tchip" onclick="setTheme(this,'objects')">🪑 Objects</span>
+      <span class="tchip" onclick="setTheme(this,'food')">🍕 Food</span>
+      <span class="tchip" onclick="setTheme(this,'animals')">🐾 Animals</span>
+      <span class="tchip" onclick="setTheme(this,'places')">🏠 Places</span>
+      <span class="tchip" onclick="setTheme(this,'people')">👤 People</span>
+      <span class="tchip" onclick="setTheme(this,'transport')">🚗 Transport</span>
+      <span class="tchip" onclick="setTheme(this,'nature')">🌿 Nature</span>
+      <span class="tchip" onclick="setTheme(this,'technology')">📱 Tech</span>
+      <span class="tchip" onclick="setTheme(this,'avengers')">🦸 Avengers</span>
+      <span class="tchip" onclick="setTheme(this,'drinks')">🥤 Cold Drinks</span>
+      <span class="tchip" onclick="setTheme(this,'apps')">📲 Apps</span>
+      <span class="tchip" onclick="setTheme(this,'avengers')">🦸 Avengers</span>
+      <span class="tchip" onclick="setTheme(this,'drinks')">🥤 Cold Drinks</span>
+      <span class="tchip" onclick="setTheme(this,'apps')">📲 Apps</span>
+      <span class="tchip" onclick="setTheme(this,'random')">🎲 Surprise me</span>
+    </div>
+  </div>
+  <button class="btn btn-xl" onclick="startGame()">▶  START GAME</button>
+  <div class="err" id="err-s"></div>
+</div>
+
+<!-- ── LOADING ────────────────────────────────────────────── -->
+<div class="screen" id="s-load">
+  <div class="card">
+    <div class="spin-wrap">
+      <div class="spin"></div>
+      <div class="spin-txt">Generating word pair…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── REVEAL ─────────────────────────────────────────────── -->
+<div class="screen" id="s-reveal">
+  <div class="card" id="rev-card"></div>
+  <button class="btn btn-xl" id="rev-btn" onclick="showWord()">👁  TAP TO SEE YOUR WORD</button>
+  <button class="btn btn-xl btn-ghost" id="nxt-btn" onclick="nextReveal()" style="display:none">NEXT PLAYER →</button>
+  <div class="dots" id="rdots"></div>
+</div>
+
+<!-- ── DISCUSSION ─────────────────────────────────────────── -->
+<div class="screen" id="s-discuss">
+  <div class="rnd-badge">⚡ Round <span id="round-num">1</span></div>
+  <div class="card">
+    <div class="clabel">Each player gives ONE clue about their word</div>
+    <div id="speak-list"></div>
+  </div>
+  <div id="discuss-action"></div>
+</div>
+
+<!-- ── VOTE ───────────────────────────────────────────────── -->
+<div class="screen" id="s-vote">
+  <div class="card">
+    <div class="clabel">Cast Your Vote</div>
+    <div style="font-size:12px;color:var(--muted2);margin-bottom:14px">Discuss, then tap who you think is the spy.</div>
+    <div class="vote-grid" id="vote-grid"></div>
+  </div>
+
+</div>
+
+<!-- ── ELIMINATION ────────────────────────────────────────── -->
+<div class="screen" id="s-elim">
+  <div class="card" id="elim-card"></div>
+  <button class="btn btn-xl" id="elim-btn"></button>
+</div>
+
+<!-- ── MR WHITE GUESS ─────────────────────────────────────── -->
+<div class="screen" id="s-guess">
+  <div class="card">
+    <div class="drama">
+      <div style="font-size:56px;margin-bottom:8px">⬜</div>
+      <div class="drama-big" style="font-size:44px;color:var(--white-col)" id="mw-name-txt">MR. WHITE</div>
+      <div class="badge badge-mw">ELIMINATED — LAST CHANCE</div>
+      <div style="font-size:13px;color:var(--muted2);margin-top:8px;line-height:1.7">
+        You've been eliminated!<br>
+        Guess the word everyone else had.<br>
+        <span style="color:var(--accent);font-weight:700">Guess right → YOU WIN THE GAME!</span>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="clabel">Your Guess</div>
+    <div class="row">
+      <input type="text" id="mw-guess" placeholder="Type the civilian word…" maxlength="30">
+      <button class="btn btn-ico btn-red" onclick="submitGuess()">✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── WIN ────────────────────────────────────────────────── -->
+<div class="screen" id="s-win">
+  <div class="card" id="win-card"></div>
+  <div class="card">
+    <div class="clabel">The Words</div>
+    <div id="words-reveal" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;padding:8px 0"></div>
+  </div>
+  <div class="card">
+    <div class="clabel">All Roles Revealed</div>
+    <div id="all-roles"></div>
+  </div>
+  <button class="btn btn-xl" onclick="playAgain()">↻  PLAY AGAIN</button>
+</div>
+
+</div><!-- /wrap -->
+
+<!-- VOTE CONFIRM OVERLAY -->
+<div class="overlay" id="vote-overlay">
+  <div class="modal">
+    <h3>CONFIRM VOTE</h3>
+    <div id="confirm-msg" style="font-size:13px;color:var(--muted2);margin-bottom:18px;line-height:1.6"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="closeOverlay()">Cancel</button>
+      <button class="btn btn-xl btn-red" style="flex:2;margin-top:0" onclick="castVote()">☠  VOTE</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ STATE ══════════════════════════════════════════════════════
+const EMO=['😎','🤠','👻','🤖','🦊','🐺','🎭','🦁','👽','🧠','🕵️','🌀'];
+const DEFAULT_PLAYERS=['Bhakthi','Chinmay','Dhruv','Harshit','Kashvi','Naman','Om','Pari','Pratik','Sanika','Sanju','Soham','Suraj','Swaraj'];
+// allPlayers = full roster, players = only "in" ones (computed at game start)
+let allPlayers = DEFAULT_PLAYERS.map(n=>({name:n,in:true}));
+let players=[], roles={}, wordMap={}, eliminated=[];
+let civilWord='', undWord='';
+let uCount=1, wCount=0;
+let revIdx=0, wordShown=false;
+let roundNum=1, speakIdx=0, speakOrder=[];
+let votes={}, pendingVote='', currentMW='';
+
+// ══ SETUP ══════════════════════════════════════════════════════
+function addPlayer(){
+  const inp=document.getElementById('pinput');
+  const n=inp.value.trim();
+  if(!n) return;
+  if(allPlayers.find(p=>p.name.toLowerCase()===n.toLowerCase())){ notify('Already in list'); return; }
+  allPlayers.push({name:n,in:true});
+  allPlayers.sort((a,b)=>a.name.localeCompare(b.name));
+  inp.value='';
+  renderPList();
+}
+document.getElementById('pinput').addEventListener('keydown',e=>{ if(e.key==='Enter') addPlayer(); });
+function togglePlayer(i){
+  allPlayers[i].in=!allPlayers[i].in;
+  renderPList();
+}
+function removeFromRoster(i){
+  allPlayers.splice(i,1);
+  renderPList();
+}
+function renderPList(){
+  const inCount=allPlayers.filter(p=>p.in).length;
+  document.getElementById('playing-count').textContent=inCount+' playing';
+  document.getElementById('plist').innerHTML=allPlayers.map((p,i)=>{
+    const on=p.in;
+    return `<div class="pchip" style="opacity:${on?1:.45};border-color:${on?'var(--accent)':'var(--border)'};cursor:pointer;transition:all .18s" onclick="togglePlayer(${i})">
+      <span style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:18px">${EMO[i%EMO.length]}</span>
+        <span style="font-weight:${on?600:400}">${p.name}</span>
+      </span>
+      <span style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:10px;letter-spacing:1px;color:${on?'var(--green)':'var(--muted2)'}">${on?'IN':'OUT'}</span>
+        <button class="btn btn-ico" onclick="event.stopPropagation();removeFromRoster(${i})" style="color:var(--muted);border-color:var(--muted);font-size:11px;width:28px;height:28px">✕</button>
+      </span>
+    </div>`;
+  }).join('');
+}
+// Init on load
+renderPList();
+function chg(t,d){
+  if(t==='u'){ uCount=Math.max(0,uCount+d); document.getElementById('cv-u').textContent=uCount; }
+  else { wCount=Math.max(0,wCount+d); document.getElementById('cv-w').textContent=wCount; }
+}
+function setTheme(el,t){
+  document.querySelectorAll('.tchip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('tinput').value=t;
+}
+
+// ══ START ══════════════════════════════════════════════════════
+async function startGame(){
+  hideErr('err-s');
+  players=allPlayers.filter(p=>p.in).map(p=>p.name).sort(()=>Math.random()-.5);
+  if(players.length<3){ showErr('err-s','Need at least 3 players playing'); return; }
+  if(uCount+wCount>=players.length){ showErr('err-s','Too many special roles'); return; }
+  if(uCount===0&&wCount===0){ showErr('err-s','Add at least 1 Undercover or Mr. White'); return; }
+  goTo('s-load');
+  const theme=document.getElementById('tinput').value.trim();
+  const w=await genWords(theme);
+  if(!w){ goTo('s-setup'); showErr('err-s','Word generation failed. Try again.'); return; }
+  civilWord=w.civilian; undWord=w.undercover;
+  assignRoles();
+  revIdx=0; roundNum=1; eliminated=[];
+  renderRevDots(); showRevCard();
+  goTo('s-reveal');
+}
+
+// ── WORD BANK (fallback) ─────────────────────────────────────
+const WORD_BANK = {
+  objects:['Chair/Stool','Table/Desk','Bed/Sofa','Pillow/Cushion','Cup/Mug','Bottle/Glass','Plate/Bowl','Spoon/Fork','Knife/Scissors','Bag/Backpack','Pen/Pencil','Book/Notebook','Mirror/Window','Clock/Watch','Candle/Torch','Bucket/Basket','Broom/Mop','Key/Lock','Rope/Chain','Ladder/Stairs','Hammer/Nail','Fan/Heater','Fridge/Freezer','Oven/Microwave','Kettle/Toaster','Soap/Shampoo','Towel/Napkin','Blanket/Bedsheet','Curtain/Blind','Frame/Poster'],
+  food:['Rice/Biryani','Roti/Naan','Bread/Toast','Butter/Cheese','Tea/Coffee','Juice/Shake','Apple/Mango','Banana/Orange','Pizza/Burger','Cake/Pastry','Chocolate/Candy','Biscuit/Cookie','Milk/Cream','Egg/Omelette','Soup/Stew','Noodles/Pasta','Chips/Fries','Samosa/Pakora','Idli/Dosa','Puri/Bhature','Halwa/Kheer','Ice Cream/Kulfi','Lollipop/Candy','Sandwich/Wrap','Popcorn/Peanuts','Hotdog/Sausage','Taco/Burrito','Jam/Jelly','Ketchup/Sauce','Honey/Syrup'],
+  animals:['Dog/Puppy','Cat/Kitten','Lion/Tiger','Cow/Buffalo','Goat/Sheep','Horse/Donkey','Rabbit/Hare','Snake/Lizard','Shark/Dolphin','Duck/Goose','Elephant/Hippo','Monkey/Bear','Parrot/Crow','Frog/Toad','Ant/Bee','Butterfly/Dragonfly','Fish/Goldfish','Hen/Rooster','Pig/Cow','Deer/Rabbit','Bear/Wolf','Zebra/Giraffe','Camel/Horse','Peacock/Parrot','Eagle/Crow','Turtle/Frog','Crab/Shrimp','Octopus/Crab','Penguin/Seal','Crocodile/Snake'],
+  places:['School/College','Hospital/Clinic','Market/Mall','Park/Garden','Beach/River','Airport/Bus Station','House/Flat','Temple/Church','Hotel/Restaurant','Library/Museum','Stadium/Arena','Cinema/Theatre','Zoo/Park','Bank/Post Office','Gym/Park','Farm/Village','Police Station/Fire Station','Bakery/Cafe','Salon/Barbershop','Playground/Garden'],
+  people:['Teacher/Professor','Doctor/Nurse','Police/Soldier','Driver/Pilot','Chef/Cook','Farmer/Gardener','Engineer/Architect','Actor/Singer','Barber/Hairdresser','Lawyer/Judge','Writer/Journalist','Painter/Artist','Coach/Referee','Guard/Watchman','Shopkeeper/Vendor','Tailor/Stitcher','Photographer/Cameraman','Plumber/Electrician','Dancer/Performer','Manager/Boss'],
+  transport:['Car/Taxi','Bus/Van','Train/Metro','Bike/Scooter','Cycle/Rickshaw','Truck/Lorry','Boat/Ship','Plane/Helicopter','Auto/Rickshaw','Ambulance/Police Car','Tractor/Truck','Rocket/Satellite','Canoe/Boat','Ferry/Ship','Sports Car/Race Car'],
+  nature:['Sun/Moon','Star/Planet','Sky/Cloud','Rain/Storm','River/Lake','Sea/Ocean','Tree/Plant','Flower/Leaf','Sand/Soil','Fire/Smoke','Mountain/Hill','Wind/Tornado','Snow/Ice','Rainbow/Lightning','Desert/Jungle','Cave/Tunnel','Waterfall/River','Mud/Soil','Rock/Stone','Seed/Fruit'],
+  technology:['Mobile/Tablet','Laptop/Computer','Keyboard/Mouse','Screen/Monitor','Camera/Video','Speaker/Headphones','TV/Remote','Internet/WiFi','Charger/Battery','App/Website','Photo/Video','Call/Message','Email/SMS','Game/App','Password/PIN','Selfie/Photo','Download/Upload','Notification/Alert','Like/Comment','Search/Browse'],
+  avengers:['Iron Man/War Machine','Captain America/Winter Soldier','Thor/Loki','Hulk/Abomination','Black Widow/Hawkeye','Spider-Man/Ant-Man','Doctor Strange/Scarlet Witch','Black Panther/Shuri','Thanos/Ronan','Groot/Rocket','Star-Lord/Nova','Gamora/Nebula','Vision/Ultron','Wanda/Agatha','Captain Marvel/Ms Marvel','Nick Fury/Maria Hill','Okoye/Ayo','Bucky/Sam Wilson','Drax/Mantis','Wong/Sorcerer Supreme'],
+  drinks:['Pepsi/Coca-Cola','Sprite/7UP','Fanta/Mirinda','Mountain Dew/Sting','Red Bull/Monster','Frooti/Maaza','Bournvita/Horlicks'],
+  apps:['YouTube/TikTok','Instagram/Snapchat','Netflix/Amazon Prime','WhatsApp/Telegram','Spotify/Apple Music','Facebook/Instagram']
+};
+const _used = new Set();
+function getLocalWord(theme){
+  const t=(theme||'').toLowerCase().trim();
+  let pool=WORD_BANK[t]||[];
+  if(!pool.length) Object.values(WORD_BANK).forEach(a=>pool.push(...a));
+  const fresh=pool.filter(p=>!_used.has(p));
+  const src=fresh.length?fresh:(_used.clear(),pool);
+  const pick=src[Math.floor(Math.random()*src.length)];
+  _used.add(pick);
+  const [c,u]=pick.split('/');
+  return {civilian:c,undercover:u};
+}
+
+async function genWords(theme){
+  const th=theme&&theme!=='random'?`Theme: ${theme}.`:'Pick any fun or surprising everyday category.';
+  const prompt=`Generate a word pair for the Undercover party game. ${th}
+Rules: The two words must be closely related but different — similar enough to confuse players, different enough to eventually detect.
+Examples: coffee/tea, guitar/violin, shark/dolphin, burger/hotdog, sunglasses/goggles, football/rugby.
+Respond ONLY with raw JSON, no markdown: {"civilian":"word1","undercover":"word2"}`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:80,messages:[{role:'user',content:prompt}]})
+    });
+    const d=await r.json();
+    const parsed=JSON.parse(d.content?.[0]?.text?.replace(/```json|```/g,'').trim());
+    if(parsed?.civilian&&parsed?.undercover) return parsed;
+    return getLocalWord(theme);
+  }catch(e){ return getLocalWord(theme); }
+}
+
+function assignRoles(){
+  const sh=[...players].sort(()=>Math.random()-.5);
+  roles={}; wordMap={};
+  sh.forEach((p,i)=>{
+    if(i<uCount){ roles[p]='undercover'; wordMap[p]=undWord; }
+    else if(i<uCount+wCount){ roles[p]='mrwhite'; wordMap[p]=null; }
+    else { roles[p]='civilian'; wordMap[p]=civilWord; }
+  });
+}
+
+// ══ REVEAL ════════════════════════════════════════════════════
+function renderRevDots(){
+  document.getElementById('rdots').innerHTML=players.map((_,i)=>
+    `<div class="dot ${i<revIdx?'done':i===revIdx?'now':''}"></div>`).join('');
+}
+function showRevCard(){
+  wordShown=false;
+  const p=players[revIdx], e=EMO[players.indexOf(p)%EMO.length];
+  document.getElementById('rev-card').innerHTML=`
+    <div class="rev-center">
+      <div class="rev-avi">${e}</div>
+      <div class="rev-name">${p}</div>
+      <div class="rev-hint">Pass the phone to this player</div>
+      <div style="margin-top:20px;font-size:30px" class="pulse">👆</div>
+    </div>`;
+  document.getElementById('rev-btn').style.display='';
+  document.getElementById('nxt-btn').style.display='none';
+  renderRevDots();
+}
+function showWord(){
+  if(wordShown) return;
+  wordShown=true;
+  const p=players[revIdx], role=roles[p], w=wordMap[p];
+  let html;
+  if(role==='mrwhite'){
+    html=`<div class="rev-center">
+      <div style="font-size:56px;margin-bottom:10px">🫥</div>
+      <div class="badge badge-mw" style="font-size:12px;padding:8px 20px;margin-bottom:14px">⬜ MR. WHITE</div>
+      <div class="word-big" style="color:var(--white-col);font-size:40px">YOU HAVE<br>NO WORD</div>
+      <div style="font-size:12px;color:var(--muted2);margin-top:16px;line-height:1.9">
+        👂 Listen to everyone's clues carefully<br>
+        🎭 Bluff like you know the word<br>
+        🎯 If eliminated — guess the word to win!
+      </div>
+    </div>`;
+  } else {
+    html=`<div class="rev-center">
+      <div style="font-size:11px;letter-spacing:3px;color:var(--muted2);text-transform:uppercase;margin-bottom:18px">YOUR WORD IS</div>
+      <div class="word-big" style="color:var(--accent)">${w.toUpperCase()}</div>
+      <div style="font-size:12px;color:var(--muted2);margin-top:16px;letter-spacing:1px">
+        Keep it secret — give clues, don't reveal it directly!
+      </div>
+    </div>`;
+  }
+  document.getElementById('rev-card').innerHTML=html;
+  document.getElementById('rev-btn').style.display='none';
+  document.getElementById('nxt-btn').style.display='';
+  document.getElementById('nxt-btn').textContent=revIdx<players.length-1?'NEXT PLAYER →':'▶ BEGIN GAME';
+}
+function nextReveal(){
+  revIdx++;
+  if(revIdx>=players.length) startDiscussion();
+  else showRevCard();
+}
+
+// ══ DISCUSSION ════════════════════════════════════════════════
+function startDiscussion(){
+  speakIdx=0;
+  document.getElementById('round-num').textContent=roundNum;
+  // Shuffle speak order, ensuring Mr. White is never first
+  let alive=alivePlayers();
+  do { alive.sort(()=>Math.random()-.5); } while(roles[alive[0]]==='mrwhite' && alive.length>1);
+  speakOrder=alive;
+  renderSpeakList();
+  renderDiscussAction();
+  goTo('s-discuss');
+}
+function renderSpeakList(){
+  document.getElementById('speak-list').innerHTML=speakOrder.map((p,i)=>`
+    <div class="speak-row ${i===speakIdx?'speaking':i<speakIdx?'done-s':''}" id="sr${i}">
+      <span class="speak-num">${i+1}</span>
+      <span style="font-size:20px">${EMO[players.indexOf(p)%EMO.length]}</span>
+      <span style="font-weight:600">${p}</span>
+      ${i===speakIdx?'<span style="margin-left:auto;font-size:10px;letter-spacing:2px;color:var(--accent)">SPEAKING NOW</span>':''}
+      ${i<speakIdx?'<span style="margin-left:auto;font-size:11px;color:var(--muted2)">✓ done</span>':''}
+    </div>`).join('');
+}
+function renderDiscussAction(){
+  const el=document.getElementById('discuss-action');
+  if(speakIdx<speakOrder.length){
+    const p=speakOrder[speakIdx];
+    el.innerHTML=`
+      <button class="btn btn-xl btn-ghost" onclick="nextSpeaker()" style="margin-bottom:8px">
+        ✓  ${p.toUpperCase()} DONE SPEAKING
+      </button>
+      <button class="btn btn-xl" onclick="startVote()" style="background:var(--surface);border-color:var(--muted);color:var(--muted2);font-size:12px">
+        ⚡ SKIP — EVERYONE DONE SPEAKING
+      </button>`;
+  } else {
+    el.innerHTML=`<button class="btn btn-xl" onclick="startVote()">🗳  OPEN VOTING</button>`;
+  }
+}
+function nextSpeaker(){
+  speakIdx++;
+  renderSpeakList();
+  renderDiscussAction();
+}
+
+// ══ VOTING — single group vote ════════════════════════════════
+function startVote(){
+  renderVoteGrid();
+  goTo('s-vote');
+}
+function esc(s){ return s.replace(/[^a-zA-Z0-9]/g,'_'); }
+function renderVoteGrid(){
+  document.getElementById('vote-grid').innerHTML=alivePlayers().map(p=>`
+    <div class="vote-card" id="vc-${esc(p)}" onclick="openVoteConfirm('${p.replace(/'/g,"\'")}')">
+      <div class="v-emo">${EMO[players.indexOf(p)%EMO.length]}</div>
+      <div class="v-name">${p}</div>
+    </div>`).join('');
+}
+function openVoteConfirm(name){
+  pendingVote=name;
+  document.getElementById('confirm-msg').innerHTML=`The group is voting to eliminate <strong style="color:var(--red)">${name}</strong>.<br><br>Everyone agree?`;
+  document.getElementById('vote-overlay').classList.add('show');
+}
+function closeOverlay(){ document.getElementById('vote-overlay').classList.remove('show'); }
+function castVote(){
+  closeOverlay();
+  if(!pendingVote) return;
+  eliminate(pendingVote);
+}
+
+
+// ══ ELIMINATE ════════════════════════════════════════════════
+function eliminate(name){
+  eliminated.push(name);
+  if(roles[name]==='mrwhite'){
+    currentMW=name;
+    document.getElementById('mw-name-txt').textContent=name.toUpperCase();
+    document.getElementById('mw-guess').value='';
+    goTo('s-guess');
+    return;
+  }
+  showElimScreen(name);
+}
+
+function showElimScreen(name){
+  const role=roles[name], e=EMO[players.indexOf(name)%EMO.length];
+  let html;
+
+  if(role==='civilian'){
+    html=`<div class="drama">
+      <div style="font-size:60px;margin-bottom:8px">💀</div>
+      <div style="font-size:12px;letter-spacing:4px;color:var(--muted2);text-transform:uppercase;margin-bottom:8px">You eliminated</div>
+      <div class="drama-big" style="font-size:52px;color:var(--red)">${e} ${name}</div>
+      <div class="badge badge-civ">👥 CIVILIAN</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--red);letter-spacing:4px;margin:14px 0 6px">SHIT.</div>
+      <div style="font-size:14px;color:var(--muted2)">You killed the wrong guy!<br>The spy is still out there…</div>
+    </div>`;
+  } else if(role==='undercover'){
+    html=`<div class="drama">
+      <div style="font-size:60px;margin-bottom:8px">🎯</div>
+      <div style="font-size:12px;letter-spacing:4px;color:var(--muted2);text-transform:uppercase;margin-bottom:8px">Busted!</div>
+      <div class="drama-big" style="font-size:52px;color:var(--accent)">${e} ${name}</div>
+      <div class="badge badge-unc">🕵️ UNDERCOVER</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--green);letter-spacing:3px;margin:14px 0 6px">GOTCHA BADMAN! 🎉</div>
+    </div>`;
+  } else {
+    // Mr. White wrong guess
+    html=`<div class="drama">
+      <div style="font-size:60px;margin-bottom:8px">👻</div>
+      <div class="drama-big" style="font-size:52px;color:var(--white-col)">${e} ${name}</div>
+      <div class="badge badge-mw">⬜ MR. WHITE — WRONG GUESS</div>
+      <div style="font-size:14px;color:var(--muted2);margin-top:12px">The word was <span style="color:var(--green);font-weight:700">"${civilWord}"</span><br>Eliminated.</div>
+    </div>`;
+  }
+
+  document.getElementById('elim-card').innerHTML=html;
+
+  // Check win
+  const alive=alivePlayers();
+  const ac=alive.filter(p=>roles[p]==='civilian').length;
+  const au=alive.filter(p=>roles[p]==='undercover').length;
+  const aw=alive.filter(p=>roles[p]==='mrwhite').length;
+  const aspec=au+aw;
+
+  let winner=null;
+  if(au===0&&aw===0) winner='civilians';
+  else if(aspec>=ac) winner='undercover';
+
+  const btn=document.getElementById('elim-btn');
+  if(winner){
+    btn.textContent='🏆 SEE RESULTS';
+    btn.className='btn btn-xl';
+    btn.onclick=()=>showWin(winner);
+  } else {
+    roundNum++;
+    btn.textContent=`ROUND ${roundNum} →`;
+    btn.className='btn btn-xl btn-ghost';
+    btn.onclick=startDiscussion;
+  }
+  goTo('s-elim');
+}
+
+// ══ MR WHITE GUESS ════════════════════════════════════════════
+function submitGuess(){
+  const g=document.getElementById('mw-guess').value.trim().toLowerCase();
+  if(!g){
+    document.getElementById('mw-guess').classList.add('shake');
+    setTimeout(()=>document.getElementById('mw-guess').classList.remove('shake'),400);
+    return;
+  }
+  document.getElementById('mw-guess').value='';
+  if(g===civilWord.toLowerCase()) showWin('mrwhite', currentMW);
+  else showElimScreen(currentMW);
+}
+document.getElementById('mw-guess').addEventListener('keydown',e=>{ if(e.key==='Enter') submitGuess(); });
+
+// ══ WIN ═══════════════════════════════════════════════════════
+function showWin(winner, extra){
+  let html;
+  if(winner==='civilians'){
+    html=`<div class="drama">
+      <div style="font-size:64px;margin-bottom:10px">🎉</div>
+      <div class="drama-big" style="font-size:58px;color:var(--green)">CIVILIANS WIN!</div>
+      <div style="font-size:13px;color:var(--muted2);margin-top:12px">All spies have been eliminated. Justice served!</div>
+    </div>`;
+  } else if(winner==='undercover'){
+    html=`<div class="drama">
+      <div style="font-size:64px;margin-bottom:10px">🕵️</div>
+      <div class="drama-big" style="font-size:52px;color:var(--red)">UNDERCOVER WINS!</div>
+      <div style="font-size:13px;color:var(--muted2);margin-top:12px">The spies blended in perfectly. Nobody suspected a thing.</div>
+    </div>`;
+  } else {
+    html=`<div class="drama">
+      <div style="font-size:64px;margin-bottom:10px">⬜</div>
+      <div class="drama-big" style="font-size:52px;color:var(--white-col)">${extra} WINS!</div>
+      <div class="badge badge-mw" style="margin-top:8px">MR. WHITE</div>
+      <div style="font-size:13px;color:var(--muted2);margin-top:10px">
+        Correctly guessed the word <span style="color:var(--accent);font-weight:700">"${civilWord}"</span>!<br>What a legend.
+      </div>
+    </div>`;
+  }
+  document.getElementById('win-card').innerHTML=html;
+
+  document.getElementById('words-reveal').innerHTML=`
+    <div style="text-align:center">
+      <div style="font-size:9px;letter-spacing:3px;color:var(--green);text-transform:uppercase;margin-bottom:4px">Civilians had</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--green);letter-spacing:3px">${civilWord.toUpperCase()}</div>
+    </div>
+    <div style="width:1px;background:var(--border)"></div>
+    <div style="text-align:center">
+      <div style="font-size:9px;letter-spacing:3px;color:var(--red);text-transform:uppercase;margin-bottom:4px">Undercover had</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--red);letter-spacing:3px">${undWord.toUpperCase()}</div>
+    </div>`;
+
+  document.getElementById('all-roles').innerHTML=players.map((p,i)=>{
+    const r=roles[p],w=wordMap[p];
+    const c=r==='civilian'?'var(--green)':r==='undercover'?'var(--red)':'var(--white-col)';
+    const ico=r==='civilian'?'👥':r==='undercover'?'🕵️':'⬜';
+    const out=eliminated.includes(p);
+    return `<div class="res-row" style="${out?'opacity:.5':''}">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px">${EMO[i%EMO.length]}</span>
+        <div>
+          <div style="${out?'text-decoration:line-through':''}">${p}</div>
+          <div style="font-size:10px;color:${c};letter-spacing:1px;margin-top:1px">${ico} ${r.toUpperCase()}${out?' · ELIMINATED':''}</div>
+        </div>
+      </div>
+      <div class="res-word" style="color:${c}">${w?w.toUpperCase():'???'}</div>
+    </div>`;
+  }).join('');
+
+  goTo('s-win');
+}
+
+// ══ PLAY AGAIN ════════════════════════════════════════════════
+function playAgain(){
+  eliminated=[]; roles={}; wordMap={}; civilWord=''; undWord='';
+  revIdx=0; roundNum=1; speakIdx=0; votes={}; speakOrder=[]; players=[];
+  renderPList();
+  goTo('s-setup');
+}
+
+// ══ UTILS ═════════════════════════════════════════════════════
+function alivePlayers(){ return players.filter(p=>!eliminated.includes(p)); }
+function goTo(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); window.scrollTo(0,0); }
+function showErr(id,m){ const e=document.getElementById(id); e.textContent=m; e.style.display='block'; }
+function hideErr(id){ document.getElementById(id).style.display='none'; }
+function notify(m){ const el=document.createElement('div'); el.className='notif'; el.textContent=m; document.body.appendChild(el); setTimeout(()=>el.remove(),2400); }
+</script>
+</body>
+</html>
