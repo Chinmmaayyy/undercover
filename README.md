@@ -63,7 +63,7 @@ Rounds continue until someone wins.
 
 ## Default Players
 
-
+made for fun 
 
 Displayed alphabetically. Toggle anyone out before starting.
 
